@@ -1,8 +1,7 @@
 package com.uracles.activity_tracker.service.implementation;
 
-import com.uracles.activity_tracker.dto.request.AppUserSignUpRequest;
-import com.uracles.activity_tracker.dto.response.AppUserLoginResponse;
-import com.uracles.activity_tracker.dto.response.AppUserSignUpResponse;
+import com.uracles.activity_tracker.dto.request.AppUserRequest;
+import com.uracles.activity_tracker.dto.response.AppUserResponse;
 import com.uracles.activity_tracker.entities.AppUser;
 import com.uracles.activity_tracker.exception.AppUserException;
 import com.uracles.activity_tracker.repository.AppUserRepository;
@@ -11,15 +10,16 @@ import com.uracles.activity_tracker.utils.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import javax.servlet.http.HttpSession;
 
 @Service
 @RequiredArgsConstructor
 public class AppUserServiceImpl implements AppUserService {
     private final AppUserRepository appUserRepository;
+    private final HttpSession httpSession;
 
     @Override
-    public AppUserSignUpResponse registerUser(AppUserSignUpRequest request) {
+    public AppUserResponse registerUser(AppUserRequest request) {
 
 //        Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 //        if (appUser.isPresent()) {
@@ -44,39 +44,52 @@ public class AppUserServiceImpl implements AppUserService {
         String userEmail = request.getEmail();
         boolean appUserExist = appUserRepository.existsByEmail(userEmail);
         if (appUserExist)
-            throw new AppUserException(userEmail);
+            throw new AppUserException("User already exist, provide a different email");
 
         return Mapper.createResponseDto(appUserRepository.save(AppUser.builder()
                 .name(request.getName())
-                    .email(request.getEmail())
-                        .password(request.getPassword())
-                             .build()
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .build()
         ));
+    }
 
 
-//    @Override
-//    public String deleteUser() {
-//        Long user_id = (Long) httpSession.getAttribute("user_id");
-//        boolean exists= userRepo.existsById(user_id);
-//        if(!exists){
-//            throw new NotFoundException("user not found");
-//        }
-//        userRepo.deleteById(user_id);
-//        return "userLogged out";
-//    }
+    @Override
+    public AppUserResponse loginUser(String email, String password){
+        AppUser appUser = appUserRepository.findByEmail(email)
+                .orElseThrow(()-> new AppUserException("User not Found OR wrong email and password"));
+        return Mapper.createResponseDto(appUser);
 
-//    @Override
-//    public AppUserLoginResponse loginUser(String email, String password){
-//        AppUser appUser = appUserRepository.findByEmail(email)
-//                .orElseThrow(()-> new AppUserException("User not Found OR wrong email and password"));
-//        return Mapper.createResponseDto(appUser);
-//
-//    }
-
-//    @Override
 //    public AppUserLoginResponse getAppUser(Long id) {
 //        return Mapper.createResponseDto (appUserRepository.findById(id).orElseThrow(
 //                ()->new AppUserException("Provide valid user id")));
 //    }
+
     }
+
+    @Override
+    public AppUserResponse viewAppUser(Long id) {
+        return Mapper.createResponseDto (appUserRepository.findById(id).orElseThrow(
+                ()->new AppUserException("App User not Found")));
+    }
+
+
+    @Override
+    public void deleteUser() {
+        Long user_id = (Long) httpSession.getAttribute("user_id");
+        boolean exists= appUserRepository.existsById(user_id);
+        if(!exists){
+            throw new AppUserException("user not found");
+        }
+        appUserRepository.deleteById(user_id);
+//        return "userLogged out";
+
+
+//        public void deleteUser(Long userId) {
+//            if (appUserRepository.existsById(userId)) {
+//                appUserRepository.deleteById(userId);
+//            }
+        }
+
 }

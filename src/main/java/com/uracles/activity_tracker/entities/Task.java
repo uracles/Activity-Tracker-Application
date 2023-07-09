@@ -31,6 +31,7 @@ public class Task {
 
     @LastModifiedDate
     private LocalDate updatedAt;
+
     private LocalDateTime completedAt;
 
     @Enumerated(EnumType.STRING)

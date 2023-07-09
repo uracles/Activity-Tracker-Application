@@ -11,11 +11,13 @@ public interface TaskService {
 
     TaskResponse viewTask(Long taskId);
 
-    List<Task> viewAllTask();
+    List<TaskResponse> viewAllTask(Long appUserId);
 
-    List<TaskResponse> viewTasksByStatus(TaskStatus status, Long studentId);
+    List<TaskResponse> moveTasksByStatus(TaskStatus status, Long appUserId);//task id as arg
 
-    Task CreateTask(TaskRequest request);
+    TaskResponse createTask(TaskRequest request);
+
+    List<TaskResponse> viewTasksByStatus(TaskStatus status, Long appUserId);
 
     Task updateTaskById(Long taskId, TaskRequest taskCreatedDto);
 

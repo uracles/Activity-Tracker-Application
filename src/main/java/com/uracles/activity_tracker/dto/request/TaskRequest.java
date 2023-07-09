@@ -19,6 +19,8 @@ public class TaskRequest {
     @NotBlank(message = "Description is needed ")
     private String description;
 
-    @NotBlank(message = "Select the task status")
-    private TaskStatus taskStatus;
+//    @NotBlank(message = "Select the task status")
+//    private TaskStatus taskStatus;
+
+    private Long id;
 }

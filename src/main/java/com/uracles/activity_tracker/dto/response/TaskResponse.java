@@ -7,13 +7,12 @@ import lombok.Data;
 @Data
 @Builder
 public class TaskResponse {
-    private Long taskId;
-
-    private Long appUserId;
+    private Long id;
 
     private String title;
 
+//    private TaskStatus taskStatus;
+
     private String description;
 
-    private TaskStatus taskStatus;
 }

@@ -9,7 +9,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @Builder
-public class AppUserSignUpRequest {
+public class AppUserRequest {
     @NotBlank(message = "please provide a name")
     private String name;
 
