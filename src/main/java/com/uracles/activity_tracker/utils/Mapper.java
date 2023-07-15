@@ -5,21 +5,26 @@ import com.uracles.activity_tracker.dto.response.TaskResponse;
 import com.uracles.activity_tracker.entities.AppUser;
 import com.uracles.activity_tracker.entities.Task;
 
-public class Mapper {
-//    public static AppUserLoginResponse createResponseDto(AppUser appUser) {
-        public static AppUserResponse createResponseDto(AppUser appUser) {
+import java.time.LocalDateTime;
 
-//        return AppUserLoginResponse.builder()
+public class Mapper {
+        public static AppUserResponse createResponseDto(AppUser appUser) {
         return AppUserResponse
-                .builder().id(appUser.getId()).email(appUser.getEmail()).name(appUser.getName()).build();
+                .builder()
+                .id(appUser.getId())
+                .email(appUser.getEmail())
+                .name(appUser.getName())
+                .build();
     }
 
     public static TaskResponse convertToTaskResponse(Task task){
         return TaskResponse.builder()
-                .id(task.getId())
+                .id(task.getTask_Id())
                 .title(task.getTitle())
                 .description(task.getDescription())
-//                .taskStatus(task.getTaskStatus())
+                .createdTime(LocalDateTime.now())
+//                .completedAt(null)
+                .taskStatus(task.getTaskStatus())
                 .build();
     }
 }

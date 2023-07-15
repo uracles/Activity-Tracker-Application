@@ -30,17 +30,16 @@ public class AppUserController {
     }
 
 
-    @DeleteMapping("/deleteUser")
-    public ResponseEntity<?> deleteUser(){
-        appUserService.deleteUser();
-        return new ResponseEntity<>("user deleted successfully", HttpStatus.NO_CONTENT);
+    @DeleteMapping("/deleteUser/{appUserId}")
+    public ResponseEntity<?> deleteUser(@PathVariable("appUserId") Long appUserId){
+        var response = appUserService.deleteUser(appUserId);
+        return ResponseEntity.ok(response);
     }
 
 
      @GetMapping("/{id}")
     public ResponseEntity<?> findAppUser(@PathVariable Long id){
          var response = appUserService.viewAppUser(id);
-//        return new ResponseEntity<>(appUserService.viewAppUser(id),HttpStatus.ACCEPTED);
          return ResponseEntity.ok(response);
     }
 }

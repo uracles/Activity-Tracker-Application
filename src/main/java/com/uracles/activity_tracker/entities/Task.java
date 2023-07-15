@@ -20,19 +20,26 @@ import java.time.LocalDateTime;
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long task_Id;
 
     private String title;
 
     private String description;
 
     @CreatedDate
-    private Timestamp createdAt;
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
+
+//    @Column(name = "created_time")
+//    private LocalDateTime createdTime;
+
+    @Column(name = "completed_time")
+    private LocalDateTime completedAt;
 
     @LastModifiedDate
     private LocalDate updatedAt;
 
-    private LocalDateTime completedAt;
+//    private Timestamp completedAt;
 
     @Enumerated(EnumType.STRING)
     private TaskStatus taskStatus;

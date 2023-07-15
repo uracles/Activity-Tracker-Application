@@ -19,7 +19,6 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskController {
     private final TaskService taskService;
-//    private final HttpSession httpSession;
 
     @PostMapping("/createTask")
     public ResponseEntity<?> create(@RequestBody @Valid TaskRequest request) {
@@ -56,19 +55,15 @@ public class TaskController {
     }
 
     @DeleteMapping("/{task_id}/deleteTask")
-    public ResponseEntity<String> deleteTask(@PathVariable Long task_id){
-        taskService.deleteTask(task_id);
-        return new ResponseEntity<>("task deleted successfully", HttpStatus.NO_CONTENT);
-
-//    public void deleteTask(@PathVariable Long task_id) {
-//        taskService.deleteTask(task_id);
-    }
+    public ResponseEntity<?> deleteTask(@PathVariable("task_id") Long task_id){
+        var response = taskService.deleteTask(task_id);
+         return ResponseEntity.ok(response);
+        }
 
 
-    @PatchMapping("/changeTaskStatus/{status}/{taskId}")
-    public ResponseEntity<?> changeTaskStatus(@PathVariable TaskStatus status, @PathVariable Long taskId){
-        var response = taskService.moveTasksByStatus(status, taskId);
-//        return new ResponseEntity<>(taskService.moveTasksByStatus(status, taskId),HttpStatus.OK);
+    @PatchMapping("/changeTaskStatus/{status}/{taskId}/{appUserId}")
+    public ResponseEntity<?> changeTaskStatus(@PathVariable TaskStatus status, @PathVariable Long taskId, @PathVariable Long appUserId){
+        var response = taskService.moveTasksByStatus(status, appUserId, taskId);
         return ResponseEntity.ok(response);
     }
 }

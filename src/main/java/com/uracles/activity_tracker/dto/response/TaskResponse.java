@@ -4,6 +4,9 @@ import com.uracles.activity_tracker.enums.TaskStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 public class TaskResponse {
@@ -11,7 +14,13 @@ public class TaskResponse {
 
     private String title;
 
-//    private TaskStatus taskStatus;
+    private LocalDateTime createdTime;
+
+//    private LocalDateTime completedAt;
+
+    private LocalDate updatedAt;
+
+    private TaskStatus taskStatus;
 
     private String description;
 

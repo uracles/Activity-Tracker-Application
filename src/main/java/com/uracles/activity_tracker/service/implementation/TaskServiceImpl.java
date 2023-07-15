@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 
 import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,164 +29,114 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final AppUserRepository appUserRepository;
-    private final HttpSession httpSession;
+
     @Override
     public TaskResponse viewTask(Long taskId) {
-        return Mapper.
-                convertToTaskResponse(taskRepository.findById(taskId)
-                .orElseThrow(()->
-                new TaskNotExistException("task is not found with id provided")));
-
-//        public TaskViewDto viewTask(Long task_id) {// noted
-//            Long user_id = (Long) httpSession.getAttribute("user_id");
-//            userRepo.findById(user_id)
-//                    .orElseThrow(() -> new NotFoundException("sorry! this task doesnt exist"));
-//
-//            Optional<Task> taskOptional = taskRepo.findById(task_id);
-//            Task task = taskOptional.orElseThrow(() -> new TaskDoesntExistException("Task does not exist"));
-//
-//            boolean isTaskOwner = task.getUserId().equals(user_id);
-//
-//            if(!isTaskOwner) throw new TaskDoesntExistException("Task does not exist");
-//
-//            return TaskViewDto.builder()
-//                    .taskId(task.getId())
-//                    .userId(task.getUserId())
-//                    .title(task.getTitle())
-//                    .description(task.getDescription())
-//                    .build();
-//        }
+        return Mapper.convertToTaskResponse(taskRepository.findById(taskId)
+                        .orElseThrow(() ->
+                                new TaskNotExistException("no task is not found for id")));
     }
 
     @Override
     public List<TaskResponse> viewAllTask(Long appUserId) {
 
-            return taskRepository.findByAppUserId(appUserId)
-                    .stream().map(Mapper::convertToTaskResponse)
-                    .collect(Collectors.toList());
-
-
-//        public List<Task> viewAllTask() {
-//            Long user_id = (Long) httpSession.getAttribute("user_id");
-//
-//            Optional<User> optionalUser = userRepo.findById(user_id);
-//            if (optionalUser.isPresent())
-//                return taskRepo.findByUserId(user_id);
-//            else
-//                throw new NotFoundException("user doesnt exist!");
-//        return null;
+        return taskRepository.findByAppUserId(appUserId)
+                .stream().map(Mapper::convertToTaskResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<TaskResponse> moveTasksByStatus(TaskStatus status, Long studentId) {
+    public TaskResponse moveTasksByStatus(TaskStatus newStatus, Long userId, Long taskId) {
+        // Get the user
+        Optional<AppUser> user = appUserRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new AppUserException("User not found");
+        }
 
-//            Task task= getTask(taskId);
-//
-//            if (task.getStatus()==status) throw new IllegalEntityStateException("Illegal Object Update",
-//                    "Status cannot be changed to same state");
-//            if(task.getStatus()==TaskStatus.DONE) task.setCompletedAt(null);
-//            task.setStatus(status);// change the state of the object
-//            if(task.getStatus()==TaskStatus.DONE) task.setCompletedAt(new Date());
-//            return Mapper.taskToTaskDto(taskRepository.saveAndFlush(task));
-//
+        AppUser user1 = user.get();
 
+        // Get the task
+        Optional<Task> task = taskRepository.findById(taskId);
+        if (task.isEmpty()) {
+            throw new AppUserException("No task for the provided id");
+        }
 
-        return null;
+        Task existingTask = task.get();
+        // Check if the user is authorized to change the status
+        if (!existingTask.getAppUser().getId().equals(user1.getId())) {
+            throw new AppUserException("Not authorized to change status");
+        }
+
+        // Update the task status
+        existingTask.setTaskStatus(newStatus);
+
+        // Update completedAt timestamp if the newStatus is DONE
+        if (newStatus == TaskStatus.COMPLETED) {
+            existingTask.setCompletedAt(LocalDateTime.now());
+        } else {
+            existingTask.setUpdatedAt(LocalDate.now());
+        }
+
+        // Save the updated task
+        taskRepository.save(existingTask);
+
+        // Build and return the response DTO
+        return TaskResponse.builder()
+                .title(existingTask.getTitle())
+                .description(existingTask.getDescription())
+                .taskStatus(existingTask.getTaskStatus())
+                .updatedAt(existingTask.getUpdatedAt())
+//                .completedAt(existingTask.getCompletedAt())
+                .build();
     }
+
+//            return Mapper.convertToTaskResponse(taskRepository.saveAndFlush(task));
+
 
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) {
 
-//        AppUser appUser = appUserRepository.findById(taskRequest.getId())
-//                .orElseThrow(() -> new AppUserException("User not available"));
-//
-//        Task task = Task.builder()
-//                .title(taskRequest.getTitle())
-//                .description(taskRequest.getDescription())
-//                .taskStatus(TaskStatus.PENDING)
-//                .appUser(appUser)
-//                .build();
-//
-//        Task savedTask = taskRepository.save(task);
-//
-//        return TaskResponse;
-
-
-//        Long appUser_id = (Long) httpSession.getAttribute("appUser_id");
-//        appUserRepository.findById(user_id).orElseThrow(() -> new AppUserException("user doesnt exist"));
-//
         return Mapper.convertToTaskResponse(taskRepository.save(
                 Task.builder()
                         .title(taskRequest.getTitle())
                         .description(taskRequest.getDescription())
                         .taskStatus(TaskStatus.PENDING)
                         .appUser(appUserRepository.findById(taskRequest.getId())
-                                .orElseThrow(()->new AppUserException("user not available")))
+                                .orElseThrow(() -> new AppUserException("user not available")))
+                        .createdTime(LocalDateTime.now())
                         .build()
         ));
-
     }
 
     @Override
-    public Task updateTaskById(Long taskId, TaskRequest taskUpdate) {
-
-        Long Id = (Long) httpSession.getAttribute("user_id");
+    public TaskResponse updateTaskById(Long taskId, TaskRequest taskUpdateRequest) {
         Optional<Task> taskOptional = taskRepository.findById(taskId);
 
-        Task oldTask = taskOptional.orElseThrow(() ->
-                new TaskNotExistException("Task does not exist"));
-
-
-        String newTitle = taskUpdate.getTitle();
-        String newDescription = taskUpdate.getDescription();
-//        TaskStatus newTaskStatus = taskUpdate.getTaskStatus();
-
-
-        if (newTitle != null && !newTitle.isBlank()) {
-            oldTask.setTitle(newTitle);
+        if (!taskOptional.isPresent()) {
+            throw new TaskNotExistException("Task not found");
         }
-            if (newDescription != null && !newDescription.isBlank()) {
-                oldTask.setDescription(newDescription);
-            }
-//                    if (newTaskStatus != null && !newTaskStatus.toString().isBlank()) {
-//                        oldTask.setTaskStatus(newTaskStatus);
-//                    }
 
-        return taskRepository.save(oldTask);
+        Task task = taskOptional.get();
+        task.setTitle(taskUpdateRequest.getTitle());
+        task.setDescription(taskUpdateRequest.getDescription());
+        task.setUpdatedAt(LocalDate.now());
 
-//        public TaskDto updateTask(TaskUpdateDto taskUpdateRequest, Long taskId) {
-//            Task task = getTask(taskId);
-//            task.setTitle(taskUpdateRequest.getTitle());
-//            task.setDescription(taskUpdateRequest.getDescription());
-//            taskRepository.save(task);
-//            return Mapper.taskToTaskDto(task);
-//
-//        }
+        taskRepository.save(task);
 
+        return Mapper.convertToTaskResponse(task);
     }
+
+
 
     @Override
     public List<TaskResponse> viewTasksByStatus(TaskStatus status, Long appUserId) {
-
-        return taskRepository.findTasksByAppUserIdAndTaskStatus(appUserId, status)
-                .stream().map(Mapper::convertToTaskResponse)
-                .collect(Collectors.toList());
-
+        return taskRepository.findTasksByAppUserIdAndTaskStatus(appUserId, status).stream().map(Mapper::convertToTaskResponse).collect(Collectors.toList());
     }
 
 
     @Override
-    public void deleteTask(Long task_id) {
-        taskRepository.deleteById(task_id);
-
-
-//        Long user_id = (Long) httpSession.getAttribute("user_id");
-//        boolean exists = appUserRepository.existsById(user_id);
-//
-//        if (!exists) {
-//            throw new AppUserException("user not found");
-//        } else {
-//            taskRepository.findById(task_id);
-//        }
+    public String deleteTask(Long taskId) {
+        taskRepository.deleteById(taskId);
+        return "task deleted successfully";
     }
 }

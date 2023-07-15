@@ -8,5 +8,5 @@ public interface AppUserService {
     AppUserResponse loginUser(String email, String password);
     AppUserResponse viewAppUser(Long id);
 //    String deleteUser();
-    void deleteUser();
+    String deleteUser(Long appUserId);
 }

@@ -11,35 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AppUserServiceImpl implements AppUserService {
     private final AppUserRepository appUserRepository;
-    private final HttpSession httpSession;
 
     @Override
     public AppUserResponse registerUser(AppUserRequest request) {
-
-//        Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
-//        if (appUser.isPresent()) {
-//            throw new AppUserException("User already exist, provide a different email");
-//        }
-//
-//        AppUser newAppUser = AppUser.builder()
-//                .name(request.getName())
-//                .email(request.getEmail())
-//                .password(request.getPassword())
-//                .build();
-//
-//        AppUser saveAppUser = appUserRepository.save(newAppUser);
-//
-//        return AppUserSignUpResponse.builder()
-//                .name(saveAppUser.getName())
-//                .email(saveAppUser.getEmail())
-//                .id(saveAppUser.getId())
-//                .build();
-
 
         String userEmail = request.getEmail();
         boolean appUserExist = appUserRepository.existsByEmail(userEmail);
@@ -50,8 +30,10 @@ public class AppUserServiceImpl implements AppUserService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(request.getPassword())
+
                 .build()
         ));
+
     }
 
 
@@ -60,11 +42,6 @@ public class AppUserServiceImpl implements AppUserService {
         AppUser appUser = appUserRepository.findByEmail(email)
                 .orElseThrow(()-> new AppUserException("User not Found OR wrong email and password"));
         return Mapper.createResponseDto(appUser);
-
-//    public AppUserLoginResponse getAppUser(Long id) {
-//        return Mapper.createResponseDto (appUserRepository.findById(id).orElseThrow(
-//                ()->new AppUserException("Provide valid user id")));
-//    }
 
     }
 
@@ -76,20 +53,17 @@ public class AppUserServiceImpl implements AppUserService {
 
 
     @Override
-    public void deleteUser() {
-        Long user_id = (Long) httpSession.getAttribute("user_id");
-        boolean exists= appUserRepository.existsById(user_id);
-        if(!exists){
+    public String deleteUser(Long appUserId) {
+
+        Optional<AppUser> optionalAppUser = appUserRepository.findById(appUserId);
+        if (optionalAppUser.isEmpty()) {
             throw new AppUserException("user not found");
+        } else {
+            AppUser appUser = optionalAppUser.get();
+            appUserRepository.delete(appUser);
+
+        return "user deleted successfully";
         }
-        appUserRepository.deleteById(user_id);
-//        return "userLogged out";
-
-
-//        public void deleteUser(Long userId) {
-//            if (appUserRepository.existsById(userId)) {
-//                appUserRepository.deleteById(userId);
-//            }
-        }
-
+    }
 }
+

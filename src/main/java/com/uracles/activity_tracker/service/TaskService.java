@@ -13,15 +13,15 @@ public interface TaskService {
 
     List<TaskResponse> viewAllTask(Long appUserId);
 
-    List<TaskResponse> moveTasksByStatus(TaskStatus status, Long appUserId);//task id as arg
+    TaskResponse moveTasksByStatus(TaskStatus status, Long appUserId, Long taskId);//task id as arg
 
     TaskResponse createTask(TaskRequest request);
 
     List<TaskResponse> viewTasksByStatus(TaskStatus status, Long appUserId);
 
-    Task updateTaskById(Long taskId, TaskRequest taskCreatedDto);
+    TaskResponse updateTaskById(Long taskId, TaskRequest taskCreatedDto);
 
-    void deleteTask(Long task_id);
+    String deleteTask(Long task_id);
 
 
 
